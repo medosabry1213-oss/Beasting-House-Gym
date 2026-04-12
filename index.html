@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -10,34 +10,21 @@
     <style>
         :root { --primary: #ffcc00; --bg: #050505; --card: #121212; --text: #fff; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 150px; }
-        
         header { background: #000; padding: 20px; text-align: center; border-bottom: 3px solid var(--primary); position: sticky; top: 0; z-index: 100; }
         .gym-name { font-size: 26px; font-weight: 900; color: var(--primary); margin: 0; }
-        
         .auth-container { height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
         .auth-card { background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid var(--primary); width: 100%; max-width: 400px; text-align: center; }
-
         input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 10px; border: 1px solid #333; background: #1e1e1e; color: #fff; box-sizing: border-box; outline: none; }
-        input:focus { border-color: var(--primary); }
-
         .exercise-box { background: var(--card); margin: 15px; padding: 15px; border-radius: 20px; border-right: 6px solid var(--primary); position: relative; }
         .set-row { display: grid; grid-template-columns: 1fr 1fr 40px; gap: 8px; margin-top: 8px; align-items: center; }
-        
         .del-btn { color: #ff4444; border: 1px solid #ff4444; border-radius: 8px; text-align: center; cursor: pointer; padding: 5px; font-size: 12px; }
-        .del-ex { position: absolute; left: 15px; top: 15px; background: #ff4444; color: #fff; padding: 2px 8px; border-radius: 5px; font-weight: bold; font-size: 11px; cursor: pointer; }
-
         .btn { width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-set { background: rgba(255, 204, 0, 0.1); color: var(--primary); border: 1px solid var(--primary); font-size: 13px; padding: 8px; }
-        .btn-add-ex { background: none; color: #fff; border: 2px dashed #444; margin: 20px 15px; width: calc(100% - 30px); }
         .btn-save { background: var(--primary); color: #000; font-size: 18px; font-weight: 900; position: fixed; bottom: 70px; width: 92%; left: 4%; z-index: 1000; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
-
-        .history-card { background: #1a1a1a; margin: 10px 15px; padding: 15px; border-radius: 15px; border: 1px solid #333; }
+        .history-card { background: #1a1a1a; margin: 10px 15px; padding: 15px; border-radius: 15px; border: 1px solid #333; position: relative; }
         .details-box { background: #000; padding: 10px; border-radius: 10px; margin-top: 10px; display: none; font-size: 13px; border: 1px solid #222; }
-        
+        .delete-workout { color: #ff4444; font-size: 18px; padding: 5px 10px; cursor: pointer; border-radius: 8px; }
         footer { position: fixed; bottom: 0; width: 100%; text-align: center; background: #000; padding: 15px 0; border-top: 1px solid #222; font-size: 12px; z-index: 999; }
-        .dev-name { color: var(--primary); font-weight: bold; text-decoration: none; display: block; margin-bottom: 2px; }
-        .dev-phone { color: #666; letter-spacing: 1px; }
-
         .hidden { display: none !important; }
         .net-status { font-size: 10px; padding: 2px 8px; border-radius: 10px; float: left; margin-top: 5px; }
     </style>
@@ -47,7 +34,6 @@
     <div id="auth-screen" class="auth-container">
         <div class="auth-card">
             <h1 style="color:var(--primary)">BEASTING HOUSE</h1>
-            <p style="font-size:14px; color:#888;">ادخل بياناتك للانطلاق</p>
             <input type="text" id="reg-name" placeholder="الاسم بالكامل">
             <input type="tel" id="reg-phone" placeholder="رقم التليفون">
             <input type="password" id="reg-pass" placeholder="كلمة السر">
@@ -58,24 +44,26 @@
     <div id="app-screen" class="hidden">
         <header><p class="gym-name">BEASTING HOUSE GYM</p></header>
         
-        <div id="user-welcome" style="padding:20px; font-size: 20px; font-weight:bold; background: linear-gradient(to left, #111, #050505); border-bottom: 1px solid #222;">
-            عاش يا وحش <span id="display-name" style="color:var(--primary)"></span> 🔥
-            <span id="online-indicator" class="net-status" style="background:#444;">فحص الشبكة...</span>
+        <div id="user-welcome" style="padding:20px; background: linear-gradient(to bottom, #111, #050505); border-bottom: 1px solid #222;">
+            <div style="font-size: 14px; color: #888;">عاش يا وحش 🔥</div>
+            <div id="display-name" style="font-size: 26px; font-weight: 900; color: var(--primary); margin-top: 5px;"></div>
+            <span id="online-indicator" class="net-status" style="background:#444; margin-top: 10px;">مزامنة...</span>
+            <div style="clear: both;"></div>
         </div>
         
         <div id="exercises-list"></div>
-        <button class="btn btn-add-ex" onclick="addExercise()">+ إضافة تمرينة أخرى</button>
+        <button class="btn" style="background:none; border:2px dashed #444; color:#fff; width:92%; margin:15px 4%;" onclick="addExercise()">+ إضافة تمرينة أخرى</button>
 
         <div style="padding: 15px;">
-            <h3 style="border-right: 4px solid var(--primary); padding-right: 10px; margin-bottom: 20px;">سجل البطولات 🏆</h3>
+            <h3 style="border-right: 4px solid var(--primary); padding-right: 10px; margin-bottom: 20px;">سجل بطولاتك الشخصية 🏆</h3>
             <div id="history-container"></div>
         </div>
 
         <button class="btn btn-save" onclick="saveWorkout()">حفظ التمرين ✅</button>
 
         <footer>
-            <div class="dev-name">المطور: محمد صبري</div>
-            <div class="dev-phone">01097281524</div>
+            <div style="color:var(--primary); font-weight: bold;">المطور: محمد صبري</div>
+            <div style="color: #666;">01097281524</div>
         </footer>
     </div>
 
@@ -95,54 +83,34 @@
         const db = firebase.database();
         let currentUser = null;
 
-        // تحديث لمبة الانترنت
         function updateNetStatus() {
-            const indicator = document.getElementById('online-indicator');
-            if(navigator.onLine) {
-                indicator.innerText = "متصل أونلاين";
-                indicator.style.background = "#2ecc71";
-                syncOfflineData(); // محاولة رفع البيانات المخزنة أوفلاين
-            } else {
-                indicator.innerText = "وضع أوفلاين";
-                indicator.style.background = "#e74c3c";
-            }
+            const ind = document.getElementById('online-indicator');
+            if(navigator.onLine) { ind.innerText = "متصل أونلاين ✅"; ind.style.background = "#2ecc71"; }
+            else { ind.innerText = "وضع أوفلاين ⚠️"; ind.style.background = "#e74c3c"; }
         }
-        window.addEventListener('online', updateNetStatus);
-        window.addEventListener('offline', updateNetStatus);
 
         function handleAuth() {
             const name = document.getElementById('reg-name').value;
             const phone = document.getElementById('reg-phone').value;
             const pass = document.getElementById('reg-pass').value;
-            if(!phone || !pass) return alert("الرجاء إكمال البيانات!");
-
-            // محاولة دخول أوفلاين لو الداتا موجودة
-            const localUser = JSON.parse(localStorage.getItem("gym_user_data"));
-            if(!navigator.onLine && localUser && localUser.phone === phone) {
-                if(localUser.pass === pass) {
-                    currentUser = localUser;
-                    return startApp();
-                } else {
-                    return alert("كلمة السر غلط!");
-                }
-            }
-
-            if(!navigator.onLine) return alert("لا يوجد انترنت لتسجيل حساب جديد!");
+            if(!phone || !pass) return alert("البيانات ناقصة!");
 
             db.ref('users/' + phone).once('value', (snap) => {
                 const data = snap.val();
-                if(data && data.profile.pass !== pass) return alert("كلمة السر غير صحيحة!");
+                if(data && data.profile.pass !== pass) return alert("كلمة السر خطأ!");
                 currentUser = data ? data.profile : { name, phone, pass };
                 if(!data) db.ref('users/' + phone + '/profile').set(currentUser);
-                localStorage.setItem("gym_user_data", JSON.stringify(currentUser));
+                localStorage.setItem("gym_beast_user", JSON.stringify(currentUser));
                 startApp();
             });
         }
 
         function startApp() {
+            if (!currentUser) return;
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
-            document.getElementById('display-name').innerText = currentUser.name;
+            // عرض الاسم فقط
+            document.getElementById('display-name').innerText = currentUser.name || "";
             updateNetStatus();
             addExercise();
             loadHistory();
@@ -150,27 +118,15 @@
 
         function addExercise() {
             const exId = Date.now();
-            const html = `
-                <div class="exercise-box" id="ex-${exId}">
-                    <span class="del-ex" onclick="document.getElementById('ex-${exId}').remove()">حذف</span>
-                    <input type="text" class="ex-name-input" placeholder="اسم التمرين">
-                    <div id="sets-container-${exId}"></div>
-                    <button class="btn btn-set" onclick="addSetRow('${exId}')">+ مجموعة جديدة</button>
-                </div>`;
+            const html = `<div class="exercise-box" id="ex-${exId}"><input type="text" class="ex-name-input" placeholder="اسم التمرين"><div id="sets-${exId}"></div><button class="btn btn-set" onclick="addSetRow('${exId}')">+ مجموعة</button></div>`;
             document.getElementById('exercises-list').insertAdjacentHTML('beforeend', html);
             addSetRow(exId);
         }
 
         function addSetRow(exId) {
-            const setId = Date.now();
-            const container = document.getElementById(`sets-container-${exId}`);
-            const html = `
-                <div class="set-row" id="set-${setId}">
-                    <input type="number" class="w-val" placeholder="وزن">
-                    <input type="number" class="r-val" placeholder="عدات">
-                    <div class="del-btn" onclick="document.getElementById('set-${setId}').remove()">X</div>
-                </div>`;
-            container.insertAdjacentHTML('beforeend', html);
+            const setId = Math.random().toString(36).substr(2, 9);
+            const html = `<div class="set-row" id="set-${setId}"><input type="number" class="w-val" placeholder="وزن"><input type="number" class="r-val" placeholder="عدات"><div class="del-btn" onclick="document.getElementById('set-${setId}').remove()">X</div></div>`;
+            document.getElementById(`sets-${exId}`).insertAdjacentHTML('beforeend', html);
         }
 
         function saveWorkout() {
@@ -186,85 +142,59 @@
                 if(name) exercises.push({ name, sets });
             });
 
-            if(exercises.length === 0) return alert("سجل بيانات التمرين!");
+            if(exercises.length === 0) return alert("سجل تمرينة الأول!");
 
-            const workoutData = {
-                id: Date.now(),
-                date: new Date().toLocaleString('ar-EG'),
-                data: exercises
-            };
+            const workoutData = { id: Date.now().toString(), date: new Date().toLocaleString('ar-EG'), data: exercises };
 
-            // 1. الحفظ في الذاكرة المحلية فوراً (عشان الأوفلاين والريفريش)
-            let localHistory = JSON.parse(localStorage.getItem("gym_history_" + currentUser.phone)) || [];
-            localHistory.unshift(workoutData);
-            localStorage.setItem("gym_history_" + currentUser.phone, JSON.stringify(localHistory));
-
-            // 2. محاولة الرفع لفايربيز
-            if(navigator.onLine) {
-                db.ref('users/' + currentUser.phone + '/history/' + workoutData.id).set(workoutData);
-            } else {
-                // تخزين مؤقت للرفع لاحقاً
-                let pending = JSON.parse(localStorage.getItem("pending_uploads")) || [];
-                pending.push({ phone: currentUser.phone, data: workoutData });
-                localStorage.setItem("pending_uploads", JSON.stringify(pending));
-            }
-
-            alert("تم الحفظ بنجاح! 🔥");
-            document.getElementById('exercises-list').innerHTML = "";
-            addExercise();
-            loadHistory();
+            db.ref('users/' + currentUser.phone + '/history/' + workoutData.id).set(workoutData)
+            .then(() => {
+                alert("تم الحفظ بنجاح! 🔥");
+                document.getElementById('exercises-list').innerHTML = "";
+                addExercise();
+            });
         }
 
         function loadHistory() {
             const container = document.getElementById('history-container');
-            const localData = JSON.parse(localStorage.getItem("gym_history_" + currentUser.phone)) || [];
-            
-            container.innerHTML = "";
-            if(localData.length === 0) return container.innerHTML = "<p style='color:#555; text-align:center;'>لا يوجد سجلات</p>";
+            db.ref('users/' + currentUser.phone + '/history').on('value', (snap) => {
+                const historyData = snap.val();
+                container.innerHTML = "";
+                if(!historyData) return container.innerHTML = "<p style='color:#555;'>لا يوجد تمارين مسجلة.</p>";
 
-            localData.forEach(item => {
-                let detailsHtml = item.data.map(ex => `
-                    <div style="margin-bottom:10px; border-bottom:1px solid #222; padding-bottom:5px;">
-                        <b style="color:var(--primary)">${ex.name}</b><br>
-                        ${ex.sets.map((s, i) => `<span style="color:#aaa;">م${i+1}:</span> ${s.w} كجم × ${s.r}`).join(' | ')}
-                    </div>`).join('');
-
-                container.insertAdjacentHTML('beforeend', `
-                    <div class="history-card" onclick="toggleDet('${item.id}')">
-                        <div style="display:flex; justify-content:space-between">
-                            <b>${item.date}</b> 
-                            <span style="color:var(--primary)">التفاصيل ⬇️</span>
-                        </div>
-                        <div class="details-box" id="det-${item.id}">${detailsHtml}</div>
-                    </div>`);
+                const list = Object.values(historyData).reverse();
+                list.forEach(item => {
+                    let details = item.data.map(ex => `<div style="margin-bottom:5px;"><b style="color:var(--primary)">${ex.name}</b>: ${ex.sets.map(s => s.w + "كجم").join(' | ')}</div>`).join('');
+                    
+                    container.insertAdjacentHTML('beforeend', `
+                        <div class="history-card">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div onclick="toggleDet('${item.id}')" style="flex-grow:1;">
+                                    <b>${item.date}</b> <span style="font-size:10px; color:var(--primary);">التفاصيل ⬇️</span>
+                                </div>
+                                <div class="delete-workout" onclick="deleteWorkout('${item.id}')">🗑️</div>
+                            </div>
+                            <div class="details-box" id="det-${item.id}">${details}</div>
+                        </div>`);
+                });
             });
+        }
+
+        function deleteWorkout(id) {
+            if(confirm("هل تريد حذف هذه التمرينة نهائياً؟")) {
+                db.ref('users/' + currentUser.phone + '/history/' + id).remove()
+                .then(() => alert("تم الحذف بنجاح 🗑️"));
+            }
         }
 
         function toggleDet(id) {
             const el = document.getElementById('det-' + id);
-            el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+            if(el) el.style.display = (el.style.display === 'block') ? 'none' : 'block';
         }
 
-        // مزامنة البيانات اللي اتحفظت والنت قاطع
-        function syncOfflineData() {
-            let pending = JSON.parse(localStorage.getItem("pending_uploads")) || [];
-            if(pending.length > 0) {
-                pending.forEach((item, index) => {
-                    db.ref('users/' + item.phone + '/history/' + item.data.id).set(item.data)
-                    .then(() => {
-                        pending.splice(index, 1);
-                        localStorage.setItem("pending_uploads", JSON.stringify(pending));
-                    });
-                });
-            }
-        }
-
-        // دخول تلقائي
-        const savedUser = JSON.parse(localStorage.getItem("gym_user_data"));
-        if(savedUser) {
-            currentUser = savedUser;
-            startApp();
-        }
+        window.onload = () => {
+            const saved = localStorage.getItem("gym_beast_user");
+            if(saved) { currentUser = JSON.parse(saved); startApp(); }
+        };
     </script>
 </body>
 </html>
