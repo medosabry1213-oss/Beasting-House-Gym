@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -95,12 +95,13 @@
         const db = firebase.database();
         let currentUser = null;
 
+        // تحديث لمبة الانترنت
         function updateNetStatus() {
             const indicator = document.getElementById('online-indicator');
             if(navigator.onLine) {
                 indicator.innerText = "متصل أونلاين";
                 indicator.style.background = "#2ecc71";
-                syncOfflineData();
+                syncOfflineData(); // محاولة رفع البيانات المخزنة أوفلاين
             } else {
                 indicator.innerText = "وضع أوفلاين";
                 indicator.style.background = "#e74c3c";
@@ -115,6 +116,7 @@
             const pass = document.getElementById('reg-pass').value;
             if(!phone || !pass) return alert("الرجاء إكمال البيانات!");
 
+            // محاولة دخول أوفلاين لو الداتا موجودة
             const localUser = JSON.parse(localStorage.getItem("gym_user_data"));
             if(!navigator.onLine && localUser && localUser.phone === phone) {
                 if(localUser.pass === pass) {
@@ -140,8 +142,7 @@
         function startApp() {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
-            // تعديل: التأكد من عرض الاسم حتى لو "null" في بعض الحالات
-            document.getElementById('display-name').innerText = currentUser.name || "بطل";
+            document.getElementById('display-name').innerText = currentUser.name;
             updateNetStatus();
             addExercise();
             loadHistory();
@@ -193,13 +194,16 @@
                 data: exercises
             };
 
+            // 1. الحفظ في الذاكرة المحلية فوراً (عشان الأوفلاين والريفريش)
             let localHistory = JSON.parse(localStorage.getItem("gym_history_" + currentUser.phone)) || [];
             localHistory.unshift(workoutData);
             localStorage.setItem("gym_history_" + currentUser.phone, JSON.stringify(localHistory));
 
+            // 2. محاولة الرفع لفايربيز
             if(navigator.onLine) {
                 db.ref('users/' + currentUser.phone + '/history/' + workoutData.id).set(workoutData);
             } else {
+                // تخزين مؤقت للرفع لاحقاً
                 let pending = JSON.parse(localStorage.getItem("pending_uploads")) || [];
                 pending.push({ phone: currentUser.phone, data: workoutData });
                 localStorage.setItem("pending_uploads", JSON.stringify(pending));
@@ -241,6 +245,7 @@
             el.style.display = (el.style.display === 'block') ? 'none' : 'block';
         }
 
+        // مزامنة البيانات اللي اتحفظت والنت قاطع
         function syncOfflineData() {
             let pending = JSON.parse(localStorage.getItem("pending_uploads")) || [];
             if(pending.length > 0) {
@@ -254,13 +259,12 @@
             }
         }
 
+        // دخول تلقائي
         const savedUser = JSON.parse(localStorage.getItem("gym_user_data"));
         if(savedUser) {
             currentUser = savedUser;
-            // تأكد إن الاسم يتحدث هنا برضه
-            setTimeout(() => { startApp(); }, 100); 
+            startApp();
         }
     </script>
 </body>
 </html>
-
