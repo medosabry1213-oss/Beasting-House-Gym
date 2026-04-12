@@ -3,164 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BEASTING HOUSE GYM</title>
-    <style>
-        :root { --primary: #ffcc00; --bg: #000; --card: #111; --text: #fff; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; direction: rtl; }
-        
-        /* واجهة الدخول (تختفي بعد التسجيل) */
-        #auth-screen { height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(#222, #000); }
-        .auth-card { background: var(--card); padding: 30px; border-radius: 25px; border: 1px solid var(--primary); width: 85%; text-align: center; }
-        .auth-input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid #333; background: #222; color: #fff; box-sizing: border-box; }
-        
-        /* واجهة تسجيل التمارين */
-        header { background: #111; padding: 20px; text-align: center; border-bottom: 2px solid var(--primary); }
-        .container { padding: 20px; padding-bottom: 120px; }
-        .exercise-card { background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 20px; border-right: 5px solid var(--primary); }
-        .ex-title-input { width: 100%; background: #222; border: 1px solid #444; color: var(--primary); padding: 12px; border-radius: 10px; font-weight: bold; margin-bottom: 15px; text-align: center; }
-        
-        .set-row { display: flex; gap: 10px; margin-bottom: 10px; }
-        .set-row input { flex: 1; background: #222; border: 1px solid #444; color: #fff; padding: 12px; border-radius: 10px; text-align: center; }
-        
-        /* السجل والـ Popup */
-        .history-item { background: #151515; padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #333; cursor: pointer; display: flex; justify-content: space-between; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; padding: 20px; box-sizing: border-box; }
-        .modal-content { background: var(--card); border-radius: 20px; padding: 25px; border: 1px solid var(--primary); max-width: 500px; margin: auto; }
+    <title>BEASTING HOUSE GYM | PRO</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
-        .btn-main { background: var(--primary); color: #000; border: none; width: 100%; padding: 18px; border-radius: 15px; font-weight: bold; font-size: 16px; cursor: pointer; }
-        .footer { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; padding: 15px; box-sizing: border-box; }
+    <style>
+        :root { --primary: #ffcc00; --bg: #050505; --card: #121212; --text: #fff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 150px; }
+        
+        header { background: #000; padding: 20px; text-align: center; border-bottom: 3px solid var(--primary); position: sticky; top: 0; z-index: 100; }
+        .gym-name { font-size: 26px; font-weight: 900; color: var(--primary); margin: 0; }
+        
+        .auth-container { height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        .auth-card { background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid var(--primary); width: 100%; max-width: 400px; text-align: center; }
+
+        input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 10px; border: 1px solid #333; background: #1e1e1e; color: #fff; box-sizing: border-box; outline: none; }
+        input:focus { border-color: var(--primary); }
+
+        .exercise-box { background: var(--card); margin: 15px; padding: 15px; border-radius: 20px; border-right: 6px solid var(--primary); position: relative; }
+        .set-row { display: grid; grid-template-columns: 1fr 1fr 40px; gap: 8px; margin-top: 8px; align-items: center; }
+        
+        .del-btn { color: #ff4444; border: 1px solid #ff4444; border-radius: 8px; text-align: center; cursor: pointer; padding: 5px; font-size: 12px; }
+        .del-ex { position: absolute; left: 15px; top: 15px; background: #ff4444; color: #fff; padding: 2px 8px; border-radius: 5px; font-weight: bold; font-size: 11px; cursor: pointer; }
+
+        .btn { width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-set { background: rgba(255, 204, 0, 0.1); color: var(--primary); border: 1px solid var(--primary); font-size: 13px; padding: 8px; }
+        .btn-add-ex { background: none; color: #fff; border: 2px dashed #444; margin: 20px 15px; width: calc(100% - 30px); }
+        .btn-save { background: var(--primary); color: #000; font-size: 18px; font-weight: 900; position: fixed; bottom: 70px; width: 92%; left: 4%; z-index: 1000; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
+
+        .history-card { background: #1a1a1a; margin: 10px 15px; padding: 15px; border-radius: 15px; border: 1px solid #333; }
+        .details-box { background: #000; padding: 10px; border-radius: 10px; margin-top: 10px; display: none; font-size: 13px; border: 1px solid #222; }
+        
+        /* حقوق المطور */
+        footer { position: fixed; bottom: 0; width: 100%; text-align: center; background: #000; padding: 15px 0; border-top: 1px solid #222; font-size: 12px; z-index: 999; }
+        .dev-name { color: var(--primary); font-weight: bold; text-decoration: none; display: block; margin-bottom: 2px; }
+        .dev-phone { color: #666; letter-spacing: 1px; }
+
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div id="auth-screen">
+    <div id="auth-screen" class="auth-container">
         <div class="auth-card">
-            <h1 style="color:var(--primary); margin:0;">BEASTING</h1>
-            <p style="color:#555; margin-bottom:20px;">HOUSE GYM</p>
-            <input type="text" id="reg-name" class="auth-input" placeholder="اسمك">
-            <input type="tel" id="reg-phone" class="auth-input" placeholder="رقم الموبايل">
-            <input type="password" id="reg-pass" class="auth-input" placeholder="كلمة السر">
-            <button class="btn-main" onclick="handleAuth()">دخول الأبطال</button>
+            <h1 style="color:var(--primary)">BEASTING HOUSE</h1>
+            <p style="font-size:14px; color:#888;">ادخل بياناتك للانطلاق</p>
+            <input type="text" id="reg-name" placeholder="الاسم بالكامل">
+            <input type="tel" id="reg-phone" placeholder="رقم التليفون">
+            <input type="password" id="reg-pass" placeholder="كلمة السر">
+            <button class="btn" style="background:var(--primary)" onclick="handleAuth()">دخول الوحوش ⚡</button>
         </div>
     </div>
 
     <div id="app-screen" class="hidden">
-        <header><h1 style="color:var(--primary); margin:0;">BEASTING HOUSE</h1></header>
-        <div class="container">
-            <h2 style="font-size:18px;">جلسة تمرين جديدة</h2>
-            <div id="active-workout"></div>
-            <button onclick="addExercise()" style="width:100%; background:#222; border:1px dashed #444; color:#888; padding:12px; border-radius:12px; margin-top:10px;">+ إضافة تمرين جديد</button>
+        <header><p class="gym-name">BEASTING HOUSE GYM</p></header>
+        
+        <div id="user-welcome" style="padding:20px; font-size: 20px; font-weight:bold; background: linear-gradient(to left, #111, #050505); border-bottom: 1px solid #222;">
+            عاش يا وحش <span id="display-name" style="color:var(--primary)"></span> 🔥
+        </div>
+        
+        <div id="exercises-list"></div>
+        <button class="btn btn-add-ex" onclick="addExercise()">+ إضافة تمرينة أخرى</button>
 
-            <h2 style="margin-top:40px; color:var(--primary)">السجلات السابقة</h2>
-            <div id="history-list"></div>
+        <div style="padding: 15px;">
+            <h3 style="border-right: 4px solid var(--primary); padding-right: 10px; margin-bottom: 20px;">سجل البطولات 🏆</h3>
+            <div id="history-container"></div>
         </div>
-        <div class="footer">
-            <button class="btn-main" onclick="saveWorkout()">حفظ التمرين النهائى</button>
-        </div>
-    </div>
 
-    <div id="details-modal" class="modal">
-        <div class="modal-content">
-            <h3 id="modal-date" style="color:var(--primary)"></h3>
-            <div id="modal-body" style="max-height: 300px; overflow-y: auto;"></div>
-            <button class="btn-main" onclick="closeModal()" style="margin-top:20px;">إغلاق</button>
-        </div>
+        <button class="btn btn-save" onclick="saveWorkout()">حفظ التمرين في السحاب ✅</button>
+
+        <footer>
+            <div class="dev-name">المطور: محمد صبري</div>
+            <div class="dev-phone">01097281524</div>
+        </footer>
     </div>
 
     <script>
-        let user = null;
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-rY8xvvnuWJ6e0YkrS6DteOYKr_0VwYI",
+            authDomain: "beastinggym.firebaseapp.com",
+            projectId: "beastinggym",
+            storageBucket: "beastinggym.firebasestorage.app",
+            messagingSenderId: "431004173980",
+            appId: "1:431004173980:web:344626f3ab38d98ebb0f59",
+            measurementId: "G-TEQEWZ03B1",
+            databaseURL: "https://beastinggym-default-rtdb.firebaseio.com"
+        };
 
-        // فحص الدخول التلقائي
-        window.onload = function() {
-            const saved = localStorage.getItem("session");
-            if (saved) { user = JSON.parse(saved); showApp(); }
-        }
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let currentUser = null;
 
         function handleAuth() {
             const name = document.getElementById('reg-name').value;
             const phone = document.getElementById('reg-phone').value;
             const pass = document.getElementById('reg-pass').value;
+            if(!name || !phone || !pass) return alert("الرجاء إكمال كافة البيانات!");
 
-            if(!phone || !pass) return alert("اكمل بياناتك يا وحش");
-
-            const existing = JSON.parse(localStorage.getItem("user_" + phone));
-            if(existing && existing.pass !== pass) return alert("كلمة السر غلط!");
-
-            user = existing || { name, phone, pass };
-            localStorage.setItem("user_" + phone, JSON.stringify(user));
-            localStorage.setItem("session", JSON.stringify(user));
-            showApp();
+            db.ref('users/' + phone).once('value', (snap) => {
+                const data = snap.val();
+                if(data && data.profile.pass !== pass) return alert("كلمة السر غير صحيحة!");
+                currentUser = data ? data.profile : { name, phone, pass };
+                if(!data) db.ref('users/' + phone + '/profile').set(currentUser);
+                localStorage.setItem("gym_user_phone", phone);
+                startApp();
+            });
         }
 
-        function showApp() {
+        function startApp() {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
-            loadHistory();
-            if(document.getElementById('active-workout').children.length === 0) addExercise();
-        }
-
-        function addExercise() {
-            const id = Date.now();
-            const html = `
-                <div class="exercise-card" id="ex-${id}">
-                    <input type="text" class="ex-title-input" placeholder="اسم التمرين...">
-                    <div id="sets-${id}"></div>
-                    <button onclick="addSet('${id}')" style="background:none; border:none; color:var(--primary); font-size:12px; margin-top:10px;">+ مجموعة</button>
-                </div>`;
-            document.getElementById('active-workout').insertAdjacentHTML('beforeend', html);
-            addSet(id);
-        }
-
-        function addSet(id) {
-            const html = `<div class="set-row"><input type="number" class="w-val" placeholder="وزن"><input type="number" class="r-val" placeholder="عدات"></div>`;
-            document.getElementById(`sets-${id}`).insertAdjacentHTML('beforeend', html);
-        }
-
-        function saveWorkout() {
-            const cards = document.querySelectorAll('.exercise-card');
-            const sessionDetails = [];
-            cards.forEach(card => {
-                const name = card.querySelector('.ex-title-input').value || "تمرين";
-                const sets = [];
-                card.querySelectorAll('.set-row').forEach(row => {
-                    sets.push({ w: row.querySelector('.w-val').value || 0, r: row.querySelector('.r-val').value || 0 });
-                });
-                sessionDetails.push({ name, sets });
-            });
-
-            const history = JSON.parse(localStorage.getItem("history_" + user.phone)) || [];
-            history.unshift({ date: new Date().toLocaleString('ar-EG'), details: sessionDetails });
-            localStorage.setItem("history_" + user.phone, JSON.stringify(history));
-
-            alert("عاش يا بطل! تم الحفظ.");
-            document.getElementById('active-workout').innerHTML = "";
+            document.getElementById('display-name').innerText = currentUser.name;
             addExercise();
             loadHistory();
         }
 
+        function addExercise() {
+            const exId = Date.now();
+            const html = `
+                <div class="exercise-box" id="ex-${exId}">
+                    <span class="del-ex" onclick="document.getElementById('ex-${exId}').remove()">حذف</span>
+                    <input type="text" class="ex-name-input" placeholder="اسم التمرين">
+                    <div id="sets-container-${exId}"></div>
+                    <button class="btn btn-set" onclick="addSetRow('${exId}')">+ مجموعة جديدة</button>
+                </div>`;
+            document.getElementById('exercises-list').insertAdjacentHTML('beforeend', html);
+            addSetRow(exId);
+        }
+
+        function addSetRow(exId) {
+            const setId = Date.now();
+            const container = document.getElementById(`sets-container-${exId}`);
+            const html = `
+                <div class="set-row" id="set-${setId}">
+                    <input type="number" class="w-val" placeholder="وزن">
+                    <input type="number" class="r-val" placeholder="عدات">
+                    <div class="del-btn" onclick="document.getElementById('set-${setId}').remove()">X</div>
+                </div>`;
+            container.insertAdjacentHTML('beforeend', html);
+        }
+
+        function saveWorkout() {
+            const exercises = [];
+            document.querySelectorAll('.exercise-box').forEach(box => {
+                const name = box.querySelector('.ex-name-input').value;
+                const sets = [];
+                box.querySelectorAll('.set-row').forEach(row => {
+                    const w = row.querySelector('.w-val').value;
+                    const r = row.querySelector('.r-val').value;
+                    if(w || r) sets.push({ w, r });
+                });
+                if(name && sets.length > 0) exercises.push({ name, sets });
+            });
+
+            if(exercises.length === 0) return alert("سجل تمرينة ومجموعة واحدة على الأقل!");
+
+            db.ref('users/' + currentUser.phone + '/history/' + Date.now()).set({
+                date: new Date().toLocaleString('ar-EG'),
+                data: exercises
+            }).then(() => {
+                alert("عاش يا " + currentUser.name + "! تم الحفظ أونلاين ✅");
+                document.getElementById('exercises-list').innerHTML = "";
+                addExercise();
+            });
+        }
+
         function loadHistory() {
-            const history = JSON.parse(localStorage.getItem("history_" + user.phone)) || [];
-            document.getElementById('history-list').innerHTML = history.map((item, index) => `
-                <div class="history-item" onclick="showDetails(${index})">
-                    <span>${item.date}</span>
-                    <span style="color:var(--primary)">عرض التفاصيل ></span>
-                </div>`).join('');
+            db.ref('users/' + currentUser.phone + '/history').on('value', (snap) => {
+                const container = document.getElementById('history-container');
+                container.innerHTML = "";
+                const data = snap.val();
+                if(!data) return container.innerHTML = "<p style='color:#555; text-align:center;'>لا يوجد سجلات حالياً</p>";
+                
+                Object.keys(data).reverse().forEach(id => {
+                    const item = data[id];
+                    let detailsHtml = item.data.map(ex => `
+                        <div style="margin-bottom:10px; border-bottom:1px solid #222; padding-bottom:5px;">
+                            <b style="color:var(--primary)">${ex.name}</b><br>
+                            ${ex.sets.map((s, i) => `<span style="color:#aaa;">م${i+1}:</span> ${s.w} كجم × ${s.r} عدات`).join(' | ')}
+                        </div>`).join('');
+
+                    container.insertAdjacentHTML('beforeend', `
+                        <div class="history-card" onclick="toggleDet('${id}')">
+                            <div style="display:flex; justify-content:space-between">
+                                <b>${item.date}</b> 
+                                <span style="color:var(--primary)">التفاصيل ⬇️</span>
+                            </div>
+                            <div class="details-box" id="det-${id}">${detailsHtml}</div>
+                        </div>`);
+                });
+            });
         }
 
-        function showDetails(index) {
-            const history = JSON.parse(localStorage.getItem("history_" + user.phone));
-            const item = history[index];
-            document.getElementById('modal-date').innerText = item.date;
-            document.getElementById('modal-body').innerHTML = item.details.map(ex => `
-                <div style="border-bottom:1px solid #333; padding:10px 0;">
-                    <strong style="color:var(--primary)">${ex.name}</strong><br>
-                    ${ex.sets.map((s, i) => `<small>م${i+1}: ${s.w} كجم × ${s.r} عدات</small>`).join('<br>')}
-                </div>`).join('');
-            document.getElementById('details-modal').style.display = 'block';
+        function toggleDet(id) {
+            const el = document.getElementById('det-' + id);
+            el.style.display = (el.style.display === 'block') ? 'none' : 'block';
         }
 
-        function closeModal() { document.getElementById('details-modal').style.display = 'none'; }
+        const savedPhone = localStorage.getItem("gym_user_phone");
+        if(savedPhone) {
+            db.ref('users/' + savedPhone + '/profile').once('value', (snap) => {
+                currentUser = snap.val();
+                if(currentUser) startApp();
+            });
+        }
     </script>
 </body>
 </html>
