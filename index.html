@@ -34,12 +34,12 @@
         .history-card { background: #1a1a1a; margin: 10px 15px; padding: 15px; border-radius: 15px; border: 1px solid #333; }
         .details-box { background: #000; padding: 10px; border-radius: 10px; margin-top: 10px; display: none; font-size: 13px; border: 1px solid #222; }
         
-        /* حقوق المطور */
         footer { position: fixed; bottom: 0; width: 100%; text-align: center; background: #000; padding: 15px 0; border-top: 1px solid #222; font-size: 12px; z-index: 999; }
         .dev-name { color: var(--primary); font-weight: bold; text-decoration: none; display: block; margin-bottom: 2px; }
         .dev-phone { color: #666; letter-spacing: 1px; }
 
         .hidden { display: none !important; }
+        .net-status { font-size: 10px; padding: 2px 8px; border-radius: 10px; float: left; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -60,6 +60,7 @@
         
         <div id="user-welcome" style="padding:20px; font-size: 20px; font-weight:bold; background: linear-gradient(to left, #111, #050505); border-bottom: 1px solid #222;">
             عاش يا وحش <span id="display-name" style="color:var(--primary)"></span> 🔥
+            <span id="online-indicator" class="net-status" style="background:#444;">فحص الشبكة...</span>
         </div>
         
         <div id="exercises-list"></div>
@@ -70,7 +71,7 @@
             <div id="history-container"></div>
         </div>
 
-        <button class="btn btn-save" onclick="saveWorkout()">حفظ التمرين في السحاب ✅</button>
+        <button class="btn btn-save" onclick="saveWorkout()">حفظ التمرين ✅</button>
 
         <footer>
             <div class="dev-name">المطور: محمد صبري</div>
@@ -94,18 +95,44 @@
         const db = firebase.database();
         let currentUser = null;
 
+        function updateNetStatus() {
+            const indicator = document.getElementById('online-indicator');
+            if(navigator.onLine) {
+                indicator.innerText = "متصل أونلاين";
+                indicator.style.background = "#2ecc71";
+                syncOfflineData();
+            } else {
+                indicator.innerText = "وضع أوفلاين";
+                indicator.style.background = "#e74c3c";
+            }
+        }
+        window.addEventListener('online', updateNetStatus);
+        window.addEventListener('offline', updateNetStatus);
+
         function handleAuth() {
             const name = document.getElementById('reg-name').value;
             const phone = document.getElementById('reg-phone').value;
             const pass = document.getElementById('reg-pass').value;
-            if(!name || !phone || !pass) return alert("الرجاء إكمال كافة البيانات!");
+            if(!phone || !pass) return alert("الرجاء إكمال البيانات!");
+
+            const localUser = JSON.parse(localStorage.getItem("gym_user_data"));
+            if(!navigator.onLine && localUser && localUser.phone === phone) {
+                if(localUser.pass === pass) {
+                    currentUser = localUser;
+                    return startApp();
+                } else {
+                    return alert("كلمة السر غلط!");
+                }
+            }
+
+            if(!navigator.onLine) return alert("لا يوجد انترنت لتسجيل حساب جديد!");
 
             db.ref('users/' + phone).once('value', (snap) => {
                 const data = snap.val();
                 if(data && data.profile.pass !== pass) return alert("كلمة السر غير صحيحة!");
                 currentUser = data ? data.profile : { name, phone, pass };
                 if(!data) db.ref('users/' + phone + '/profile').set(currentUser);
-                localStorage.setItem("gym_user_phone", phone);
+                localStorage.setItem("gym_user_data", JSON.stringify(currentUser));
                 startApp();
             });
         }
@@ -113,7 +140,9 @@
         function startApp() {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
-            document.getElementById('display-name').innerText = currentUser.name;
+            // تعديل: التأكد من عرض الاسم حتى لو "null" في بعض الحالات
+            document.getElementById('display-name').innerText = currentUser.name || "بطل";
+            updateNetStatus();
             addExercise();
             loadHistory();
         }
@@ -153,45 +182,57 @@
                     const r = row.querySelector('.r-val').value;
                     if(w || r) sets.push({ w, r });
                 });
-                if(name && sets.length > 0) exercises.push({ name, sets });
+                if(name) exercises.push({ name, sets });
             });
 
-            if(exercises.length === 0) return alert("سجل تمرينة ومجموعة واحدة على الأقل!");
+            if(exercises.length === 0) return alert("سجل بيانات التمرين!");
 
-            db.ref('users/' + currentUser.phone + '/history/' + Date.now()).set({
+            const workoutData = {
+                id: Date.now(),
                 date: new Date().toLocaleString('ar-EG'),
                 data: exercises
-            }).then(() => {
-                alert("عاش يا " + currentUser.name + "! تم الحفظ أونلاين ✅");
-                document.getElementById('exercises-list').innerHTML = "";
-                addExercise();
-            });
+            };
+
+            let localHistory = JSON.parse(localStorage.getItem("gym_history_" + currentUser.phone)) || [];
+            localHistory.unshift(workoutData);
+            localStorage.setItem("gym_history_" + currentUser.phone, JSON.stringify(localHistory));
+
+            if(navigator.onLine) {
+                db.ref('users/' + currentUser.phone + '/history/' + workoutData.id).set(workoutData);
+            } else {
+                let pending = JSON.parse(localStorage.getItem("pending_uploads")) || [];
+                pending.push({ phone: currentUser.phone, data: workoutData });
+                localStorage.setItem("pending_uploads", JSON.stringify(pending));
+            }
+
+            alert("تم الحفظ بنجاح! 🔥");
+            document.getElementById('exercises-list').innerHTML = "";
+            addExercise();
+            loadHistory();
         }
 
         function loadHistory() {
-            db.ref('users/' + currentUser.phone + '/history').on('value', (snap) => {
-                const container = document.getElementById('history-container');
-                container.innerHTML = "";
-                const data = snap.val();
-                if(!data) return container.innerHTML = "<p style='color:#555; text-align:center;'>لا يوجد سجلات حالياً</p>";
-                
-                Object.keys(data).reverse().forEach(id => {
-                    const item = data[id];
-                    let detailsHtml = item.data.map(ex => `
-                        <div style="margin-bottom:10px; border-bottom:1px solid #222; padding-bottom:5px;">
-                            <b style="color:var(--primary)">${ex.name}</b><br>
-                            ${ex.sets.map((s, i) => `<span style="color:#aaa;">م${i+1}:</span> ${s.w} كجم × ${s.r} عدات`).join(' | ')}
-                        </div>`).join('');
+            const container = document.getElementById('history-container');
+            const localData = JSON.parse(localStorage.getItem("gym_history_" + currentUser.phone)) || [];
+            
+            container.innerHTML = "";
+            if(localData.length === 0) return container.innerHTML = "<p style='color:#555; text-align:center;'>لا يوجد سجلات</p>";
 
-                    container.insertAdjacentHTML('beforeend', `
-                        <div class="history-card" onclick="toggleDet('${id}')">
-                            <div style="display:flex; justify-content:space-between">
-                                <b>${item.date}</b> 
-                                <span style="color:var(--primary)">التفاصيل ⬇️</span>
-                            </div>
-                            <div class="details-box" id="det-${id}">${detailsHtml}</div>
-                        </div>`);
-                });
+            localData.forEach(item => {
+                let detailsHtml = item.data.map(ex => `
+                    <div style="margin-bottom:10px; border-bottom:1px solid #222; padding-bottom:5px;">
+                        <b style="color:var(--primary)">${ex.name}</b><br>
+                        ${ex.sets.map((s, i) => `<span style="color:#aaa;">م${i+1}:</span> ${s.w} كجم × ${s.r}`).join(' | ')}
+                    </div>`).join('');
+
+                container.insertAdjacentHTML('beforeend', `
+                    <div class="history-card" onclick="toggleDet('${item.id}')">
+                        <div style="display:flex; justify-content:space-between">
+                            <b>${item.date}</b> 
+                            <span style="color:var(--primary)">التفاصيل ⬇️</span>
+                        </div>
+                        <div class="details-box" id="det-${item.id}">${detailsHtml}</div>
+                    </div>`);
             });
         }
 
@@ -200,13 +241,26 @@
             el.style.display = (el.style.display === 'block') ? 'none' : 'block';
         }
 
-        const savedPhone = localStorage.getItem("gym_user_phone");
-        if(savedPhone) {
-            db.ref('users/' + savedPhone + '/profile').once('value', (snap) => {
-                currentUser = snap.val();
-                if(currentUser) startApp();
-            });
+        function syncOfflineData() {
+            let pending = JSON.parse(localStorage.getItem("pending_uploads")) || [];
+            if(pending.length > 0) {
+                pending.forEach((item, index) => {
+                    db.ref('users/' + item.phone + '/history/' + item.data.id).set(item.data)
+                    .then(() => {
+                        pending.splice(index, 1);
+                        localStorage.setItem("pending_uploads", JSON.stringify(pending));
+                    });
+                });
+            }
+        }
+
+        const savedUser = JSON.parse(localStorage.getItem("gym_user_data"));
+        if(savedUser) {
+            currentUser = savedUser;
+            // تأكد إن الاسم يتحدث هنا برضه
+            setTimeout(() => { startApp(); }, 100); 
         }
     </script>
 </body>
 </html>
+
