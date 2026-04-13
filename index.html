@@ -3,88 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BEASTING HOUSE GYM | PRO</title>
+    <title>BEASTING HOUSE GYM</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
     <style>
-        :root { --primary: #ffcc00; --bg: #050505; --card: #121212; --text: #fff; --danger: #ff4444; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 150px; }
-        header { background: #000; padding: 20px; text-align: center; border-bottom: 3px solid var(--primary); position: sticky; top: 0; z-index: 100; display: flex; justify-content: center; align-items: center; }
-        .gym-name { font-size: 26px; font-weight: 900; color: var(--primary); margin: 0; cursor: pointer; }
-        .logout-btn { position: absolute; left: 20px; font-size: 24px; cursor: pointer; color: var(--primary); background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 10px; }
-        .auth-container { height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
-        .auth-card { background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid var(--primary); width: 100%; max-width: 400px; text-align: center; }
-        input, textarea, select { width: 100%; padding: 12px; margin: 5px 0; border-radius: 10px; border: 1px solid #333; background: #1e1e1e; color: #fff; box-sizing: border-box; outline: none; }
-        .exercise-box { background: var(--card); margin: 15px; padding: 15px; border-radius: 20px; border-right: 6px solid var(--primary); position: relative; }
-        .set-row { display: grid; grid-template-columns: 1fr 1fr 40px; gap: 8px; margin-top: 8px; align-items: center; }
-        .del-btn { color: var(--danger); border: 1px solid var(--danger); border-radius: 8px; text-align: center; cursor: pointer; padding: 5px; font-size: 12px; }
-        .btn { width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-set { background: rgba(255, 204, 0, 0.1); color: var(--primary); border: 1px solid var(--primary); font-size: 13px; padding: 8px; }
-        .btn-save { background: var(--primary); color: #000; font-size: 18px; font-weight: 900; position: fixed; bottom: 70px; width: 92%; left: 4%; z-index: 1000; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
-        .history-card { background: #1a1a1a; margin: 10px 15px; padding: 15px; border-radius: 15px; border: 1px solid #333; position: relative; }
-        .details-box { background: #000; padding: 10px; border-radius: 10px; margin-top: 10px; display: none; font-size: 13px; border: 1px solid #222; }
-        footer { position: fixed; bottom: 0; width: 100%; text-align: center; background: #000; padding: 15px 0; border-top: 1px solid #222; font-size: 12px; z-index: 999; }
+        :root { --gold: #ffcc00; --bg: #0a0a0a; --card: #1a1a1a; --danger: #ff4d4d; --success: #2ecc71; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; margin: 0; padding-bottom: 50px; }
+        
+        header { background: #000; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gold); position: sticky; top: 0; z-index: 1000; }
+        .logo-text { font-size: 22px; font-weight: 900; color: var(--gold); letter-spacing: 1px; }
+
+        .dashboard { padding: 20px; display: grid; gap: 20px; }
+        .menu-card { 
+            background: var(--card); padding: 30px 20px; border-radius: 25px; 
+            text-align: center; border: 1px solid #333; transition: 0.3s; cursor: pointer;
+        }
+        .menu-card:active { transform: scale(0.95); background: #222; }
+        .menu-card i { font-size: 40px; display: block; margin-bottom: 10px; }
+        .menu-card h3 { margin: 0; color: var(--gold); }
+
+        .view-section { display: none; padding: 15px; animation: fadeIn 0.4s; }
+        .active-view { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .btn-back { background: #222; color: #fff; padding: 8px 15px; border-radius: 10px; border: none; margin-bottom: 15px; cursor: pointer; }
+        input { width: 100%; padding: 12px; margin: 8px 0; background: #111; border: 1px solid #333; border-radius: 12px; color: #fff; box-sizing: border-box; }
+        .btn-gold { background: var(--gold); color: #000; width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: 900; cursor: pointer; }
+
+        .exercise-container { background: var(--card); margin: 15px 0; padding: 15px; border-radius: 20px; border-right: 6px solid var(--gold); }
+        .set-grid { display: grid; grid-template-columns: 1fr 1fr 40px; gap: 8px; margin-top: 10px; }
+        .del-btn { color: var(--danger); font-weight: bold; text-align: center; line-height: 40px; cursor: pointer; font-size: 22px; }
+
+        .footer-rights { text-align: center; padding: 20px; font-size: 12px; color: #444; border-top: 1px solid #111; margin-top: 20px; line-height: 1.6; }
+        
         .hidden { display: none !important; }
-        .net-status { font-size: 10px; padding: 2px 8px; border-radius: 10px; float: left; margin-top: 5px; }
-        .level-badge { background: var(--primary); color: #000; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
-        .coach-plan-btn { background: linear-gradient(45deg, #ffcc00, #ff8800); color: #000; padding: 15px; margin: 15px; border-radius: 15px; text-align: center; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(255,204,0,0.3); }
-        .admin-user-card { background: #1a1a1a; padding: 15px; margin: 10px; border-radius: 15px; border: 1px solid #333; border-right: 5px solid var(--primary); position: relative; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; padding: 20px; box-sizing: border-box; overflow-y: auto; }
-        .status-locked { border-right-color: var(--danger) !important; opacity: 0.7; }
-        .delete-user-btn { position: absolute; top: 10px; left: 10px; color: var(--danger); font-size: 18px; cursor: pointer; background: rgba(255,68,68,0.1); width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .search-container { padding: 10px 15px; background: #000; border-bottom: 1px solid #222; position: sticky; top: 70px; z-index: 99; }
-        #adminSearch { border: 1px solid var(--primary); background: #111; padding: 12px; border-radius: 12px; font-size: 16px; }
+        .admin-user-box { background: #161616; margin: 10px 0; padding: 15px; border-radius: 15px; border: 1px solid #333; }
+        
+        #net-indicator { font-size: 10px; padding: 2px 8px; border-radius: 10px; margin-right: 10px; }
+        .online { background: rgba(46, 204, 113, 0.2); color: var(--success); }
+        .offline { background: rgba(255, 77, 77, 0.2); color: var(--danger); }
     </style>
 </head>
 <body>
 
-    <div id="auth-screen" class="auth-container">
-        <div class="auth-card">
-            <h1 onclick="checkAdmin()" style="color:var(--primary); cursor:pointer;">BEASTING HOUSE GYM</h1>
-            <input type="text" id="reg-name" placeholder="الاسم بالكامل">
-            <input type="tel" id="reg-phone" placeholder="رقم التليفون">
-            <input type="password" id="reg-pass" placeholder="كلمة السر">
-            <button class="btn" style="background:var(--primary)" onclick="handleAuth()">دخول الوحوش ⚡</button>
+    <div id="auth-screen" style="height:100vh; display:flex; justify-content:center; align-items:center; padding:20px;">
+        <div style="background:var(--card); padding:30px; border-radius:25px; width:100%; max-width:400px; text-align:center;">
+            <h1 onclick="adminAccess()" class="logo-text" style="font-size:30px">BEASTING HOUSE GYM</h1>
+            <input type="text" id="login-name" placeholder="الاسم">
+            <input type="tel" id="login-phone" placeholder="رقم الموبايل">
+            <input type="password" id="login-pass" placeholder="كلمة السر">
+            <button class="btn-gold" onclick="handleLogin()">دخول الوحوش ⚡</button>
         </div>
-    </div>
-
-    <div id="admin-panel" class="hidden">
-        <header><div class="logout-btn" onclick="location.reload()">🔙</div><p class="gym-name">لوحة تحكم الكابتن محمود</p></header>
-        <div class="search-container">
-            <input type="text" id="adminSearch" placeholder="ابحث بالاسم أو برقم التليفون..." oninput="filterUsers()">
-        </div>
-        <div id="admin-users-list" style="padding:15px;"></div>
     </div>
 
     <div id="app-screen" class="hidden">
-        <header><div class="logout-btn" onclick="logout()">🔙</div><p class="gym-name">BEASTING HOUSE GYM</p></header>
-        <div id="user-welcome" style="padding:20px; background: linear-gradient(to bottom, #111, #050505); border-bottom: 1px solid #222;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <div style="font-size: 14px; color: #888;">عاش يا وحش 🔥</div>
-                    <div id="display-name" style="font-size: 24px; font-weight: 900; color: var(--primary); margin-top: 5px;"></div>
-                </div>
-                <div id="display-level" class="level-badge">مستوى: مبتدئ</div>
+        <header>
+            <div class="logo-text">BEASTING HOUSE GYM</div>
+            <div style="display:flex; align-items:center;">
+                <span id="net-indicator" class="online">متصل</span>
+                <button onclick="logout()" style="background:none; border:none; color:var(--gold); font-weight:bold;">خروج</button>
             </div>
-            <span id="online-indicator" class="net-status" style="background:#444; margin-top: 10px;">مزامنة...</span>
+        </header>
+
+        <div id="home-view" class="view-section active-view">
+            <div style="padding: 10px 0;">
+                <h2 id="welcome-name" style="color: var(--gold); margin:0;">عاش يا بطل،</h2>
+                <p style="color:#666; font-size:14px;">جاهز تكسر الأوزان النهاردة؟ 🔥</p>
+            </div>
+            
+            <div class="dashboard">
+                <div class="menu-card" onclick="switchView('workout-view')">
+                    <i>✏️</i>
+                    <h3>سجل تمارينك</h3>
+                    <p style="font-size:12px; color:#888;">ابدأ تسجيل تمرين حر</p>
+                </div>
+                <div class="menu-card" onclick="switchView('coach-view')" style="border-color: var(--gold);">
+                    <i>📋</i>
+                    <h3>جدول الكابتن</h3>
+                    <p style="font-size:12px; color:#888;">تمارين المدرب المخصصة لك</p>
+                </div>
+                <div class="menu-card" onclick="switchView('history-view')">
+                    <i>🏆</i>
+                    <h3>سجل البطولات</h3>
+                    <p style="font-size:12px; color:#888;">راجع كل اللي حققته</p>
+                </div>
+            </div>
+
+            <div class="footer-rights">
+                المطور محمد صبرى <br> 01097281524
+            </div>
         </div>
-        
-        <div class="coach-plan-btn" id="plan-btn" onclick="toggleCoachSection()">📋 نظام تمرينك يا وحش (اضغط هنا)</div>
-        <div id="coach-section" class="hidden">
-            <h3 style="margin: 10px 20px; color:#2ecc71;">الخطة المحددة لك:</h3>
-            <div id="coach-exercises"></div>
+
+        <div id="workout-view" class="view-section">
+            <button class="btn-back" onclick="switchView('home-view')">← رجوع</button>
+            <h3 style="color:var(--gold)">تسجيل تمرين حر:</h3>
+            <div id="free-workout-list"></div>
+            <button class="btn-gold" style="background:none; border:2px dashed #444; color:#666; margin:10px 0;" onclick="addExercise('free-workout-list')">+ تمرين جديد</button>
+            <button class="btn-gold" onclick="saveWorkout()">حفظ التمرين ✅</button>
         </div>
-        
-        <div id="exercises-list"></div>
-        <button class="btn" style="background:none; border:2px dashed #444; color:#fff; width:92%; margin:15px 4%;" onclick="addExercise()">+ إضافة تمرينة أخرى</button>
-        <div style="padding: 15px;"><h3 style="border-right: 4px solid var(--primary); padding-right: 10px; margin-bottom: 20px;">سجل بطولاتك الشخصية 🏆</h3><div id="history-container"></div></div>
-        
-        <button class="btn btn-save" onclick="saveWorkout()">حفظ التمرين ✅</button>
-        <footer><div style="color:var(--primary); font-weight: bold;">المطور: محمد صبري</div><div style="color: #666;">01097281524</div></footer>
+
+        <div id="coach-view" class="view-section">
+            <button class="btn-back" onclick="switchView('home-view')">← رجوع</button>
+            <h3 style="color:var(--success)">جدول الكابتن المخصص:</h3>
+            <div id="coach-workout-list"></div>
+            <button class="btn-gold" onclick="saveWorkout()">حفظ تمرين الكابتن ✅</button>
+        </div>
+
+        <div id="history-view" class="view-section">
+            <button class="btn-back" onclick="switchView('home-view')">← رجوع</button>
+            <h3>سجل البطولات 🏆</h3>
+            <div id="history-container"></div>
+        </div>
     </div>
 
-    <div id="admin-user-history" class="modal"><h2 id="viewing-user-name" style="color:var(--primary)"></h2><div id="user-history-content"></div><button class="btn" style="background:var(--primary)" onclick="document.getElementById('admin-user-history').style.display='none'">إغلاق</button></div>
+    <div id="admin-screen" class="hidden">
+        <header><div class="logo-text">لوحة التحكم</div><button onclick="location.reload()" style="background:none; border:none; color:var(--gold);">خروج</button></header>
+        <div style="padding:15px;">
+            <input type="text" id="adminSearch" placeholder="ابحث باسم البطل..." oninput="filterUsers()">
+            <div id="admin-users-list"></div>
+        </div>
+    </div>
 
     <script>
         const firebaseConfig = {
@@ -94,188 +133,152 @@
             storageBucket: "beastinggym.firebasestorage.app",
             messagingSenderId: "431004173980",
             appId: "1:431004173980:web:344626f3ab38d98ebb0f59",
-            measurementId: "G-TEQEWZ03B1",
             databaseURL: "https://beastinggym-default-rtdb.firebaseio.com"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        db.goOnline();
-
         let currentUser = null;
-        let allUsersData = {};
 
-        function logout() { localStorage.removeItem("gym_beast_user"); location.reload(); }
-        function checkAdmin() { if(prompt("كلمة السر الخاصة بك:") === "00550088") { document.getElementById('auth-screen').classList.add('hidden'); document.getElementById('admin-panel').classList.remove('hidden'); loadAllUsers(); } }
+        // نظام الأوفلاين
+        window.addEventListener('online', syncData);
+        window.addEventListener('offline', () => { 
+            const ind = document.getElementById('net-indicator');
+            ind.innerText = "أوفلاين (حفظ مؤقت)";
+            ind.className = "offline";
+        });
 
-        function loadAllUsers() {
-            db.ref('users').on('value', (snap) => {
-                allUsersData = snap.val() || {};
-                renderUserList(allUsersData);
-            });
-        }
-
-        function renderUserList(users) {
-            const list = document.getElementById('admin-users-list');
-            list.innerHTML = "";
-            for(let phone in users) {
-                const u = users[phone].profile || {};
-                const level = u.level || "مبتدئ";
-                const isLocked = u.status === "locked";
-                list.innerHTML += `
-                    <div class="admin-user-card ${isLocked ? 'status-locked' : ''}" data-name="${u.name}" data-phone="${phone}">
-                        <div class="delete-user-btn" onclick="deleteUser('${phone}', '${u.name}')">🗑</div>
-                        <div style="display:flex; justify-content:space-between; margin-left: 30px;">
-                            <b>${u.name || 'مجهول'}</b>
-                            <span style="color:var(--primary)">${phone}</span>
-                        </div>
-                        <div style="background:#000; padding:5px; margin:5px 0; border-radius:5px; font-size:12px;">
-                            <span style="color:#888">كلمة السر: </span> <span style="color:#fff">${u.pass || '---'}</span>
-                        </div>
-                        <select onchange="updateLevel('${phone}', this.value)">
-                            <option value="مبتدئ" ${level=='مبتدئ'?'selected':''}>مبتدئ</option>
-                            <option value="متوسط" ${level=='متوسط'?'selected':''}>متوسط</option>
-                            <option value="وحش كاسر" ${level=='وحش كاسر'?'selected':''}>وحش كاسر</option>
-                        </select>
-                        <div id="admin-inputs-${phone}"><input type="text" class="plan-input" placeholder="اسم تمرينة"></div>
-                        <button class="btn btn-set" style="margin-top:5px;" onclick="addAdminInput('${phone}')">+ خانة تمرين</button>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                            <button class="btn" style="background:var(--primary); color:#000;" onclick="assignPlan('${phone}')">تحديث</button>
-                            <button class="btn" style="background:#222; color:#fff;" onclick="viewUserHistory('${phone}', '${u.name}')">التمارين</button>
-                        </div>
-                        <button class="btn" style="background:${isLocked ? '#2ecc71' : 'var(--danger)'}; color:#fff;" onclick="toggleLock('${phone}', '${isLocked ? 'active' : 'locked'}')">
-                            ${isLocked ? 'تفعيل' : 'إيقاف الاشتراك'}
-                        </button>
-                    </div>`;
+        function syncData() {
+            const ind = document.getElementById('net-indicator');
+            ind.innerText = "متصل"; ind.className = "online";
+            const offlineData = JSON.parse(localStorage.getItem("offline_logs") || "[]");
+            if(offlineData.length > 0 && currentUser) {
+                offlineData.forEach(item => db.ref(`users/${currentUser.phone}/history/${Date.now()}`).set(item));
+                localStorage.removeItem("offline_logs");
+                alert("تم رفع التمارين المسجلة أوفلاين بنجاح!");
             }
         }
 
-        function filterUsers() {
-            const val = document.getElementById('adminSearch').value.toLowerCase();
-            const cards = document.querySelectorAll('.admin-user-card');
-            cards.forEach(card => {
-                const name = card.getAttribute('data-name').toLowerCase();
-                const phone = card.getAttribute('data-phone').toLowerCase();
-                card.style.display = (name.includes(val) || phone.includes(val)) ? 'block' : 'none';
-            });
-        }
-
-        function deleteUser(p, n) { if(confirm(`حذف البطل ${n}؟`)) { db.ref('users/' + p).remove(); } }
-        function toggleLock(p, status) { db.ref('users/' + p + '/profile/status').set(status); }
-        function addAdminInput(p) { document.getElementById(`admin-inputs-${p}`).insertAdjacentHTML('beforeend', '<input type="text" class="plan-input" placeholder="اسم تمرينة">'); }
-        function updateLevel(p, v) { db.ref('users/' + p + '/profile/level').set(v); }
-        function assignPlan(p) { 
-            const inputs = document.querySelectorAll(`#admin-inputs-${p} .plan-input`);
-            const plan = [];
-            inputs.forEach(inp => { if(inp.value.trim() !== "") plan.push(inp.value.trim()); });
-            db.ref('users/' + p + '/dailyPlan').set(plan).then(() => alert("تم الإرسال!")); 
-        }
-
-        function handleAuth() {
-            const n = document.getElementById('reg-name').value, p = document.getElementById('reg-phone').value, ps = document.getElementById('reg-pass').value;
+        function handleLogin() {
+            const n = document.getElementById('login-name').value, p = document.getElementById('login-phone').value, ps = document.getElementById('login-pass').value;
             if(!p || !ps) return alert("البيانات ناقصة!");
-            db.ref('users/' + p).once('value', (snap) => {
+            db.ref('users/' + p).once('value', snap => {
                 const d = snap.val();
-                if(d && d.profile && d.profile.pass !== ps) return alert("كلمة السر خطأ!");
-                if(d && d.profile && d.profile.status === "locked") return alert("حسابك مغلق، راجع الكابتن محمود.");
-                currentUser = d ? d.profile : { name: n, phone: p, pass: ps, level: "مبتدئ", status: "active" };
+                if(d && d.profile.status === "locked") return alert("الاشتراك متوقف!");
+                if(d && d.profile.pass !== ps) return alert("كلمة السر خطأ!");
+                currentUser = d ? d.profile : { name: n || "بطل", phone: p, pass: ps, status: "active" };
                 if(!d) db.ref('users/' + p + '/profile').set(currentUser);
-                localStorage.setItem("gym_beast_user", JSON.stringify(currentUser));
-                startApp();
+                localStorage.setItem("beast_user", JSON.stringify(currentUser));
+                initApp();
             });
         }
 
-        function startApp() {
-            if (!currentUser) return;
+        function initApp() {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
-            document.getElementById('display-name').innerText = currentUser.name || "يا وحش";
-            db.ref('users/' + currentUser.phone + '/profile/level').on('value', s => { if(s.val()) document.getElementById('display-level').innerText = "مستوى: " + s.val(); });
-            updateNetStatus(); loadCoachPlan(); addExercise(); loadHistory();
+            document.getElementById('welcome-name').innerText = "عاش يا بطل، " + currentUser.name;
+            loadCoachPlan(); loadHistory();
         }
 
-        function toggleCoachSection() { document.getElementById('coach-section').classList.toggle('hidden'); }
-
-        function loadCoachPlan() {
-            db.ref('users/' + currentUser.phone + '/dailyPlan').on('value', (snap) => {
-                const plan = snap.val(), container = document.getElementById('coach-exercises');
-                if(plan) {
-                    container.innerHTML = "";
-                    plan.forEach((ex, i) => {
-                        const id = 'coach-' + i + '-' + Date.now();
-                        container.innerHTML += `<div class="exercise-box" style="border-right-color:#2ecc71"><b class="ex-name-label" style="color:#2ecc71">${ex}</b><div id="sets-${id}"></div><button class="btn btn-set" onclick="addSetRow('${id}')">+ مجموعة</button></div>`;
-                        setTimeout(() => addSetRow(id), 100);
-                    });
-                }
-            });
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active-view'));
+            document.getElementById(viewId).classList.add('active-view');
         }
 
-        function addExercise() {
-            const id = Date.now();
-            document.getElementById('exercises-list').insertAdjacentHTML('beforeend', `<div class="exercise-box" id="ex-${id}"><input type="text" class="ex-name-input" placeholder="اسم التمرين"><div id="sets-${id}"></div><button class="btn btn-set" onclick="addSetRow('${id}')">+ مجموعة</button></div>`);
-            addSetRow(id);
+        function addExercise(targetId, name = '') {
+            const id = Date.now() + Math.random().toString(36).substr(2, 5);
+            const html = `<div class="exercise-container" id="ex-${id}">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <input type="text" class="ex-name" value="${name}" placeholder="اسم التمرين" ${name ? 'readonly style="color:var(--gold); border:none; background:none; font-weight:bold;"' : ''}>
+                    <span class="del-btn" onclick="this.closest('.exercise-container').remove()">×</span>
+                </div>
+                <div id="sets-${id}"></div>
+                <button style="background:none; border:1px solid #444; color:#888; width:100%; padding:5px; border-radius:10px; font-size:12px; margin-top:10px;" onclick="addSet('${id}')">+ مجموعة</button>
+            </div>`;
+            document.getElementById(targetId).insertAdjacentHTML('beforeend', html);
+            addSet(id);
         }
 
-        function addSetRow(id) {
-            const sid = Math.random().toString(36).substr(2, 9);
-            document.getElementById(`sets-${id}`).insertAdjacentHTML('beforeend', `<div class="set-row" id="set-${sid}"><input type="number" class="w-val" placeholder="وزن"><input type="number" class="r-val" placeholder="عدات"><div class="del-btn" onclick="this.parentElement.remove()">X</div></div>`);
+        function addSet(id) {
+            const html = `<div class="set-grid"><input type="number" class="w" placeholder="وزن"><input type="number" class="r" placeholder="عدات"><span class="del-btn" style="font-size:16px;" onclick="this.parentElement.remove()">×</span></div>`;
+            document.getElementById(`sets-${id}`).insertAdjacentHTML('beforeend', html);
         }
 
         function saveWorkout() {
-            const exers = [];
-            document.querySelectorAll('.exercise-box').forEach(box => {
-                const inp = box.querySelector('.ex-name-input'), label = box.querySelector('.ex-name-label');
-                const name = inp ? inp.value : (label ? label.innerText : "");
+            const exercises = [];
+            document.querySelectorAll('.active-view .exercise-container').forEach(card => {
+                const name = card.querySelector('.ex-name').value;
                 const sets = [];
-                box.querySelectorAll('.set-row').forEach(row => { 
-                    const w = row.querySelector('.w-val').value, r = row.querySelector('.r-val').value; 
-                    if(w || r) sets.push({ w: w || 0, r: r || 0 }); 
+                card.querySelectorAll('.set-grid').forEach(set => {
+                    const w = set.querySelector('.w').value, r = set.querySelector('.r').value;
+                    if(w || r) sets.push({w: w || 0, r: r || 0});
                 });
-                if(name && sets.length > 0) exers.push({ name, sets });
+                if(name && sets.length > 0) exercises.push({name, sets});
             });
-            if(exers.length === 0) return alert("سجل تمرينة!");
-            db.ref('users/' + currentUser.phone + '/history/' + Date.now()).set({ id: Date.now().toString(), date: new Date().toLocaleString('ar-EG'), data: exers }).then(() => { alert("تم الحفظ! 🔥"); location.reload(); });
+            if(exercises.length === 0) return alert("سجل تمرينك الأول!");
+            const log = { date: new Date().toLocaleString('ar-EG'), data: exercises };
+            
+            if(navigator.onLine) {
+                db.ref(`users/${currentUser.phone}/history/${Date.now()}`).set(log).then(() => { alert("تم الحفظ بنجاح! 🔥"); switchView('home-view'); });
+            } else {
+                const logs = JSON.parse(localStorage.getItem("offline_logs") || "[]");
+                logs.push(log);
+                localStorage.setItem("offline_logs", JSON.stringify(logs));
+                alert("تم الحفظ (أوفلاين).. سيتم الرفع عند توفر نت!");
+                switchView('home-view');
+            }
+        }
+
+        function loadCoachPlan() {
+            db.ref(`users/${currentUser.phone}/dailyPlan`).on('value', snap => {
+                const plan = snap.val(); const container = document.getElementById('coach-workout-list');
+                container.innerHTML = ""; if(plan) plan.forEach(exName => addExercise('coach-workout-list', exName));
+            });
         }
 
         function loadHistory() {
-            db.ref('users/' + currentUser.phone + '/history').on('value', (snap) => {
-                const data = snap.val(), container = document.getElementById('history-container');
-                container.innerHTML = ""; if(!data) return;
-                Object.values(data).reverse().forEach(item => {
-                    let details = item.data.map(ex => `<div style="margin-bottom:5px;"><b style="color:var(--primary)">${ex.name}</b>: ${ex.sets.map(s => s.w + "كجم x " + s.r).join(' | ')}</div>`).join('');
-                    container.insertAdjacentHTML('beforeend', `<div class="history-card" onclick="toggleDet('${item.id}')"><b>${item.date}</b><div class="details-box" id="det-${item.id}">${details}</div></div>`);
+            db.ref(`users/${currentUser.phone}/history`).on('value', snap => {
+                const container = document.getElementById('history-container');
+                container.innerHTML = ""; const data = snap.val(); if(!data) return;
+                Object.keys(data).reverse().forEach(key => {
+                    const item = data[key];
+                    const exHTML = item.data.map(ex => `<div style="margin-top:8px; font-size:14px;"><b style="color:var(--gold)">${ex.name}</b>: ${ex.sets.map(s => s.w + "kg x " + s.r).join(' | ')}</div>`).join('');
+                    container.insertAdjacentHTML('beforeend', `<div style="background:#111; padding:15px; border-radius:15px; margin-bottom:15px; border:1px solid #222;">
+                        <div style="display:flex; justify-content:space-between; color:#888; font-size:12px;"><span>📅 ${item.date}</span><span class="del-btn" style="font-size:20px" onclick="deleteHist('${key}')">×</span></div>${exHTML}</div>`);
                 });
             });
         }
-
-        function toggleDet(id) { const el = document.getElementById('det-' + id); if(el) el.style.display = (el.style.display === 'block') ? 'none' : 'block'; }
-        
-        function updateNetStatus() { 
-            const ind = document.getElementById('online-indicator'); 
-            if(navigator.onLine) { ind.innerText = "متصل ✅"; ind.style.background = "#2ecc71"; } 
-            else { ind.innerText = "أوفلاين (سيتم الرفع لاحقاً) ⚠️"; ind.style.background = "#e74c3c"; } 
+        function deleteHist(key) { if(confirm("حذف التمرين؟")) db.ref(`users/${currentUser.phone}/history/${key}`).remove(); }
+        function adminAccess() { if(prompt("باسورد المدير:") === "00550088") { document.getElementById('auth-screen').classList.add('hidden'); document.getElementById('admin-screen').classList.remove('hidden'); loadAdminUsers(); } }
+        function loadAdminUsers() {
+            db.ref('users').on('value', snap => {
+                const users = snap.val(), container = document.getElementById('admin-users-list'); container.innerHTML = "";
+                for(let ph in users) {
+                    const u = users[ph].profile;
+                    container.innerHTML += `<div class="admin-user-box" data-search="${u.name} ${ph}">
+                        <b>${u.name}</b> (${ph}) <br> <small style="color:var(--gold)">Pass: ${u.pass}</small>
+                        <div id="p-in-${ph}" style="margin-top:10px;"><input type="text" class="plan-in" placeholder="اسم التمرين"></div>
+                        <button style="background:none; border:1px solid #444; color:#888; width:100%; font-size:10px; border-radius:5px;" onclick="addField('${ph}')">+ تمرين</button>
+                        <div style="display:flex; gap:10px; margin-top:10px;">
+                            <button class="btn-gold" style="flex:2; padding:10px;" onclick="sendPlan('${ph}')">إرسال</button>
+                            <button class="btn-gold" style="flex:1; padding:10px; background:${u.status==='locked'?'var(--success)':'var(--danger)'}" onclick="toggleStatus('${ph}', '${u.status}')">${u.status==='locked'?'تفعيل':'إيقاف'}</button>
+                        </div></div>`;
+                }
+            });
         }
-
-        function viewUserHistory(p, n) { 
-            db.ref('users/' + p + '/history').once('value', s => { 
-                let h = s.val(), c = document.getElementById('user-history-content'); 
-                c.innerHTML = ""; 
-                document.getElementById('viewing-user-name').innerText = n;
-                if(!h) c.innerHTML = "لا يوجد بيانات"; 
-                else Object.values(h).reverse().forEach(w => { 
-                    let detailHtml = w.data.map(e => `<div style="background:#000; padding:8px; margin-top:5px; border-radius:8px; border-right:2px solid var(--primary)"><b style="color:var(--primary)">${e.name}</b><br>${e.sets.map((s, idx) => `<small>م${idx+1}: ${s.w}كجم x ${s.r}</small>`).join(' | ')}</div>`).join('');
-                    c.innerHTML += `<div class="history-card"><b>📅 ${w.date}</b>${detailHtml}</div>`; 
-                }); 
-                document.getElementById('admin-user-history').style.display = 'block'; 
-            }); 
+        function addField(ph) { document.getElementById(`p-in-${ph}`).insertAdjacentHTML('beforeend', `<input type="text" class="plan-in" placeholder="اسم التمرين">`); }
+        function sendPlan(ph) {
+            const ins = document.querySelectorAll(`#p-in-${ph} .plan-in`), plan = [];
+            ins.forEach(i => { if(i.value) plan.push(i.value); });
+            db.ref(`users/${ph}/dailyPlan`).set(plan).then(() => alert("تم الإرسال!"));
         }
-
-        window.onload = () => { 
-            const saved = localStorage.getItem("gym_beast_user"); 
-            if(saved) { currentUser = JSON.parse(saved); startApp(); } 
-            window.addEventListener('online', updateNetStatus);
-            window.addEventListener('offline', updateNetStatus);
-        };
+        function toggleStatus(ph, s) { db.ref(`users/${ph}/profile/status`).set(s === 'locked' ? 'active' : 'locked'); }
+        function filterUsers() {
+            const q = document.getElementById('adminSearch').value.toLowerCase();
+            document.querySelectorAll('.admin-user-box').forEach(b => b.classList.toggle('hidden', !b.getAttribute('data-search').toLowerCase().includes(q)));
+        }
+        function logout() { localStorage.removeItem("beast_user"); location.reload(); }
+        window.onload = () => { const s = localStorage.getItem("beast_user"); if(s) { currentUser = JSON.parse(s); initApp(); } };
     </script>
 </body>
-    </html>
-                
+                    </html>
+    
